@@ -1,3 +1,12 @@
+Metadata-Version: 2.1
+Name: hidiffusion
+Version: 0.1.0
+Summary: HiDiffusion: A training-free method to increase the resolution and speed of diffusion models.
+Home-page: 
+Author: Shen Zhang, Zhaowei Chen, Zhenyu Zhao, Yuhao Chen, Yao Tang, Jiajun Liang
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 <!-- # 💡 HiDiffusion -->
 
 <div align="center">
@@ -256,15 +265,15 @@ apply_hidiffusion(pipe)
 pipe.enable_model_cpu_offload()
 pipe.enable_xformers_memory_efficient_attention()
 
-prompt = "The Joker, high face detail, high detail, muted color, 8k"
-negative_prompt = "blurry, ugly, duplicate, poorly drawn, deformed, mosaic."
+prompt = "a zombie, high face detail, high detail, muted color, 8k"
+negative_prompt = "blurry, ugly, duplicate, poorly drawn, deformed, mosaic, poorly drawn teeth, duplicated teeth."
 
 image = pipe(
     prompt, controlnet_conditioning_scale=controlnet_conditioning_scale, image=canny_image,
     height=2048, width=2048, guidance_scale=7.5, negative_prompt = negative_prompt, eta=1.0
 ).images[0]
 
-image.save('joker.jpg')
+image.save('zombie.jpg')
 ```
 
 <details>
