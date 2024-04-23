@@ -98,6 +98,7 @@ is_aggressive_raunet = True
 aggressive_step = 8
 
 inpainting_is_aggressive_raunet = False
+playground_is_aggressive_raunet = False
 
 current_path = os.path.dirname(__file__)
 module_key_path = os.path.join(current_path, "sd_module_key")
@@ -361,22 +362,42 @@ def make_diffusers_sdxl_contrtolnet_ppl(block_class):
                 )
 
             # 1. Check inputs. Raise error if not correct
-            self.check_inputs(
-                prompt,
-                prompt_2,
-                image,
-                callback_steps,
-                negative_prompt,
-                negative_prompt_2,
-                prompt_embeds,
-                negative_prompt_embeds,
-                pooled_prompt_embeds,
-                negative_pooled_prompt_embeds,
-                controlnet_conditioning_scale,
-                control_guidance_start,
-                control_guidance_end,
-                callback_on_step_end_tensor_inputs,
-            )
+            if old_diffusers:
+                self.check_inputs(
+                    prompt,
+                    prompt_2,
+                    image,
+                    callback_steps,
+                    negative_prompt,
+                    negative_prompt_2,
+                    prompt_embeds,
+                    negative_prompt_embeds,
+                    pooled_prompt_embeds,
+                    negative_pooled_prompt_embeds,
+                    controlnet_conditioning_scale,
+                    control_guidance_start,
+                    control_guidance_end,
+                    callback_on_step_end_tensor_inputs,
+                )
+            else:
+                self.check_inputs(
+                    prompt,
+                    prompt_2,
+                    image,
+                    callback_steps,
+                    negative_prompt,
+                    negative_prompt_2,
+                    prompt_embeds,
+                    negative_prompt_embeds,
+                    pooled_prompt_embeds,
+                    None,
+                    None,
+                    negative_pooled_prompt_embeds,
+                    controlnet_conditioning_scale,
+                    control_guidance_start,
+                    control_guidance_end,
+                    callback_on_step_end_tensor_inputs,
+                )
 
             self._guidance_scale = guidance_scale
             self._clip_skip = clip_skip
@@ -1357,6 +1378,8 @@ def make_diffusers_cross_attn_down_block(block_class: Type[torch.nn.Module]) -> 
                         
                     if self.info['is_inpainting_task']:
                         self.aggressive_raunet = inpainting_is_aggressive_raunet
+                    elif self.info['is_playground']:
+                        self.aggressive_raunet = playground_is_aggressive_raunet
                     else:
                         self.aggressive_raunet = is_aggressive_raunet
                 else:
@@ -1482,10 +1505,14 @@ def make_diffusers_cross_attn_up_block(block_class: Type[torch.nn.Module]) -> Ty
                         self.T1_ratio = controlnet_switching_threshold_ratio_dict['sdxl_2048'][self.switching_threshold_ratio]
                     else:
                         self.T1_ratio = switching_threshold_ratio_dict['sdxl_2048'][self.switching_threshold_ratio]
+                        
                     if self.info['is_inpainting_task']:
                         self.aggressive_raunet = inpainting_is_aggressive_raunet
+                    elif self.info['is_playground']:
+                        self.aggressive_raunet = playground_is_aggressive_raunet
                     else:
                         self.aggressive_raunet = is_aggressive_raunet
+                        
                 else:
                     self.T1_ratio = switching_threshold_ratio_dict['sdxl_4096'][self.switching_threshold_ratio]
             elif self.model == 'sdxl_turbo':
@@ -1613,8 +1640,11 @@ def make_diffusers_downsampler_block(block_class: Type[torch.nn.Module]) -> Type
                         self.T1_ratio = controlnet_switching_threshold_ratio_dict['sdxl_2048'][self.switching_threshold_ratio]
                     else:
                         self.T1_ratio = switching_threshold_ratio_dict['sdxl_2048'][self.switching_threshold_ratio]
+                        
                     if self.info['is_inpainting_task']:
                         self.aggressive_raunet = inpainting_is_aggressive_raunet
+                    elif self.info['is_playground']:
+                        self.aggressive_raunet = playground_is_aggressive_raunet
                     else:
                         self.aggressive_raunet = is_aggressive_raunet
                 else:
@@ -1699,8 +1729,11 @@ def make_diffusers_upsampler_block(block_class: Type[torch.nn.Module]) -> Type[t
                         self.T1_ratio = controlnet_switching_threshold_ratio_dict['sdxl_2048'][self.switching_threshold_ratio]
                     else:
                         self.T1_ratio = switching_threshold_ratio_dict['sdxl_2048'][self.switching_threshold_ratio]
+                        
                     if self.info['is_inpainting_task']:
                         self.aggressive_raunet = inpainting_is_aggressive_raunet
+                    elif self.info['is_playground']:
+                        self.aggressive_raunet = playground_is_aggressive_raunet
                     else:
                         self.aggressive_raunet = is_aggressive_raunet
                 else:
@@ -1795,9 +1828,8 @@ def apply_hidiffusion(
         elif set(sdxl_module_key) < set(diffusion_model_module_key):
             name_or_path = 'stabilityai/stable-diffusion-xl-base-1.0'
 
-        
     diffusion_model.info = {'size': None, 'hooks': [], 'scheduler': model.scheduler, 'use_controlnet': hasattr(model, 'controlnet'),
-                            'is_inpainting_task': 'inpainting' in model.name_or_path}
+                            'is_inpainting_task': 'inpainting' in model.name_or_path, 'is_playground': 'playground' in model.name_or_path}
     hook_diffusion_model(diffusion_model)
     
     if name_or_path in ['runwayml/stable-diffusion-v1-5', 'stabilityai/stable-diffusion-2-1-base']:

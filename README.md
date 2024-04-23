@@ -347,6 +347,7 @@ image.save("./magical_princess.jpg")
 </details>
 
 ### Playground
+
 ```python
 from diffusers import DiffusionPipeline
 import torch
@@ -370,6 +371,9 @@ negative_prompt="blurry, ugly, duplicate, poorly drawn, deformed, mosaic"
 image  = pipe(prompt=prompt, guidance_scale=3.0, height=2048, width=2048, negative_prompt=negative_prompt).images[0]
 image.save('girl.jpg')
 ```
+
+Note: You may change guidance scale from 3.0 to 5.0 and design appropriate negative prompt to generate satisfactory results.
+
 <details>
 <summary>Output:</summary>
 <div align="center">
