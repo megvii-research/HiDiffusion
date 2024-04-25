@@ -1750,7 +1750,8 @@ def make_diffusers_upsampler_block(block_class: Type[torch.nn.Module]) -> Type[t
             else:            
                 self.T1 = int(self.max_timestep * self.T1_ratio)
             if self.timestep < self.T1:
-                hidden_states = F.interpolate(hidden_states, scale_factor=2.0, mode='bicubic')
+                if ori_H != hidden_states.shape[2] and ori_W != hidden_states.shape[3]:
+                    hidden_states = F.interpolate(hidden_states, scale_factor=2.0, mode='bicubic')
             self.timestep += 1
             if self.timestep == self.max_timestep:
                 self.timestep = 0
