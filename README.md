@@ -26,10 +26,11 @@
 <br>
 
 
-# 👉 Why HiDiffusion
+## 👉 Why HiDiffusion
 
 - A  **training-free method that increases the resolution and speed of pretrained diffusion models.**
 - Designed as a **plug-and-play implementation**. It can be integrated into diffusion pipelines by **only adding a single line of code**!
+- Supports various tasks, including **text-to-image, image-to-image, inpainting**.
 
 <div align="center">
   <img src="assets/quality_efficiency.jpg" width="800" ></img>
@@ -39,6 +40,21 @@
   </em>
 </div>
 <br>
+
+<div align="center">
+  <img src="assets/various_task.jpg" width="800" ></img>
+  <br>
+  <em>
+      (2K results of ControlNet and inpainting tasks.) 
+  </em>
+</div>
+<br>
+
+## 🔥 Update
+- 2024.5.7 - 💥 Support image-to-image task, see [here](#image-to-image-generation).
+
+- 2024.4.16 - 💥 Release source code.
+
 
 ## 📢 Supported Models
 
@@ -52,7 +68,7 @@
 ## 💣 Supported Tasks
 
 - ✅ Text-to-image
-- ✅ ControlNet
+- ✅ ControlNet, including text-to-image, image-to-image
 - ✅ Inpainting
 
 
@@ -221,6 +237,7 @@ If you want to remove HiDiiffusion, simply use `remove_hidiffusion(pipe)`.
 
 ## ControlNet
 
+### Text-to-image generation
 ```python
 from diffusers import StableDiffusionXLControlNetPipeline, ControlNetModel, DDIMScheduler
 import numpy as np
@@ -230,7 +247,7 @@ from PIL import Image
 from hidiffusion import apply_hidiffusion, remove_hidiffusion
 
 # load Yoshua_Bengio.jpg in the assets file.
-path = 'Yoshua_Bengio.jpg'
+path = './assets/Yoshua_Bengio.jpg'
 image = Image.open(path)
 # get canny image
 image = np.array(image)
@@ -274,6 +291,70 @@ image.save('joker.jpg')
 </div>
 </details>
 
+
+### Image-to-image generation
+```python
+import torch
+import numpy as np
+from PIL import Image
+from diffusers import ControlNetModel, StableDiffusionXLControlNetImg2ImgPipeline, DDIMScheduler
+from hidiffusion import apply_hidiffusion, remove_hidiffusion
+import cv2 
+
+controlnet = ControlNetModel.from_pretrained(
+    "diffusers/controlnet-canny-sdxl-1.0", torch_dtype=torch.float16, variant="fp16"
+).to("cuda")
+scheduler = DDIMScheduler.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", subfolder="scheduler")
+
+pipe = StableDiffusionXLControlNetImg2ImgPipeline.from_pretrained(
+    "stabilityai/stable-diffusion-xl-base-1.0",
+    controlnet=controlnet,
+    scheduler = scheduler,
+    torch_dtype=torch.float16,
+).to("cuda")
+
+# Apply hidiffusion with a single line of code.
+apply_hidiffusion(pipe)
+
+pipe.enable_model_cpu_offload()
+pipe.enable_xformers_memory_efficient_attention()
+
+path = './assets/lara.jpeg'
+ori_image = Image.open(path)
+# get canny image
+image = np.array(ori_image)
+image = cv2.Canny(image, 50, 120)
+image = image[:, :, None]
+image = np.concatenate([image, image, image], axis=2)
+canny_image = Image.fromarray(image)
+
+controlnet_conditioning_scale = 0.5  # recommended for good generalization
+prompt = "Lara Croft with brown hair, and is wearing a tank top, a brown backpack. The room is dark and has an old-fashioned decor with a patterned floor and a wall featuring a design with arches and a dark area on the right side, muted color, high detail, 8k high definition award winning"
+negative_prompt = "underexposed, poorly drawn hands, duplicate hands, overexposed, bad art, beginner, amateur, abstract, disfigured, deformed, close up, weird colors, watermark"
+
+image = pipe(prompt,
+    image=ori_image,
+    control_image=canny_image,
+    height=1536,
+    width=2048,
+    strength=0.99,
+    num_inference_steps=50,
+    controlnet_conditioning_scale=controlnet_conditioning_scale,
+    guidance_scale=12.5,
+    negative_prompt = negative_prompt,
+    eta=1.0
+).images[0]
+
+image.save("lara.jpg")
+```
+
+<details>
+<summary>Output:</summary>
+<div align="center">
+  <img src="assets/lara_result.jpg" width="800" ></img>
+</div>
+</details>
+
 ## Inpainting
 
 ```python
@@ -300,7 +381,7 @@ pipeline.enable_xformers_memory_efficient_attention()
 img_url = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/diffusers/sdxl-text2img.png"
 init_image = load_image(img_url)
 # load mask_image.jpg in the assets file.
-mask_image = Image.open("mask_image.png")
+mask_image = Image.open("./assets/mask_image.png")
 
 prompt =  "A steampunk explorer in a leather aviator cap and goggles, with a brass telescope in hand, stands amidst towering ancient trees, their roots entwined with intricate gears and pipes."
 
