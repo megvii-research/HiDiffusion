@@ -2058,3 +2058,4 @@ def remove_hidiffusion(model: torch.nn.Module):
             module.__class__ = module._parent
     
     return model
+
