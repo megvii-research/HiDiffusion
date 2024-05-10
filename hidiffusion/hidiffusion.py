@@ -2042,7 +2042,6 @@ def apply_hidiffusion(
 
 
 
-
 def remove_hidiffusion(model: torch.nn.Module):
     """ Removes hidiffusion from a Diffusion module if it was already patched. """
     # For diffusers
@@ -2058,4 +2057,3 @@ def remove_hidiffusion(model: torch.nn.Module):
             module.__class__ = module._parent
     
     return model
-
