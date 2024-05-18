@@ -9,7 +9,7 @@ import diffusers
 from diffusers.utils import USE_PEFT_BACKEND, replace_example_docstring
 from diffusers.pipelines.stable_diffusion_xl.pipeline_output import StableDiffusionXLPipelineOutput
 from diffusers.image_processor import PipelineImageInput, VaeImageProcessor
-from diffusers.utils.torch_utils import is_compiled_module, is_torch_version, randn_tensor
+from diffusers.utils.torch_utils import is_compiled_module, is_torch_version, randn_tensor, apply_freeu
 from diffusers.pipelines.controlnet.multicontrolnet import MultiControlNetModel
 from diffusers.models import ControlNetModel
 
