@@ -1,4 +1,4 @@
-torch==1.13.1
+torch
 diffusers==0.27.0
 transformers==4.27.4
 accelerate==0.18.0
