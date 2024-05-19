@@ -15,6 +15,7 @@ from diffusers.utils.torch_utils import (
     is_compiled_module,
     is_torch_version,
     randn_tensor,
+    apply_freeu,
 )
 from diffusers.pipelines.controlnet.multicontrolnet import MultiControlNetModel
 from diffusers.models import ControlNetModel
