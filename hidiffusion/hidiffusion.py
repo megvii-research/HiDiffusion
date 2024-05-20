@@ -16,6 +16,8 @@ from diffusers.utils.torch_utils import (
     is_torch_version,
     randn_tensor,
     apply_freeu,
+    scale_lora_layers,
+    unscale_lora_layers,
 )
 from diffusers.pipelines.controlnet.multicontrolnet import MultiControlNetModel
 from diffusers.models import ControlNetModel
