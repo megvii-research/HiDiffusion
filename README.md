@@ -51,7 +51,11 @@
 <br>
 
 ## 🔥 Update
-- 2024.5.7 - 💥 Support image-to-image task, see [here](#image-to-image-generation).
+- 2024.6.16 - 💥 Support PyTorch 2.X.
+
+- 2024.6.16 - 💥 Fix non-square generation issue. Now HiDiffusion supports more image sizes and aspect ratios.
+
+- 2024.5.7 -  💥 Support image-to-image task, see [here](#image-to-image-generation).
 
 - 2024.4.16 - 💥 Release source code.
 
@@ -75,11 +79,11 @@
 ## 🔎 Main Requirements
 This repository is tested on
 * Python==3.8
-* torch==1.13.1
-* diffusers==0.27.0
-* transformers==4.27.4
-* accelerate==0.18.0
-* xformers==0.0.16rc425
+* torch>=1.13.1
+* diffusers>=0.25.0
+* transformers
+* accelerate
+* xformers
 
 ## 🔑 Install HiDiffusion
 After installing the packages in the [main requirements](#-main-requirements), install HiDiffusion:
