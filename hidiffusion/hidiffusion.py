@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from .utils import isinstance_str
 from dataclasses import dataclass
 import diffusers
-from diffusers.utils import USE_PEFT_BACKEND, replace_example_docstring
+from diffusers.utils import USE_PEFT_BACKEND, replace_example_docstring, scale_lora_layers, unscale_lora_layers
 from diffusers.pipelines.stable_diffusion_xl.pipeline_output import StableDiffusionXLPipelineOutput
 from diffusers.image_processor import PipelineImageInput, VaeImageProcessor
 from diffusers.utils.torch_utils import is_compiled_module, is_torch_version, randn_tensor, apply_freeu
