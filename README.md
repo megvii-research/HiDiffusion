@@ -51,6 +51,8 @@
 <br>
 
 ## 🔥 Update
+- 2024.6.19 - 💥 Integrated into [OpenBayes](https://openbayes.com/), see the [demo](https://openbayes.com/console/public/tutorials/SaPYcYCaWSA). Thank OpenBayes team!
+
 - 2024.6.16 - 💥 Support PyTorch 2.X.
 
 - 2024.6.16 - 💥 Fix non-square generation issue. Now HiDiffusion supports more image sizes and aspect ratios.
