@@ -14,6 +14,7 @@
   <a href="https://hidiffusion.github.io/"><img src="https://img.shields.io/static/v1?label=Project%20Page&message=Github&color=blue&logo=github-pages"></a> &ensp;
   <a href="https://arxiv.org/abs/2311.17528"><img src="https://img.shields.io/static/v1?label=Paper&message=Arxiv:HiDiffusion&color=red&logo=arxiv"></a> &ensp;
   <a href="https://colab.research.google.com/drive/1EiBn9lSnPZTU4cikRRaBBexs429M-qty?usp=sharing"><img src="https://img.shields.io/static/v1?label=Demo&message=Colab&color=purple&logo=googlecolab"></a> &ensp;
+  <a href="https://openbayes.com/console/public/tutorials/SaPYcYCaWSA"><img src="https://img.shields.io/static/v1?label=Demo&message=OpenBayes&color=green"></a> &ensp;
 </div>
 
 <div align="center">
