@@ -52,6 +52,8 @@
 <br>
 
 ## 🔥 Update
+- 2024.7.3 - 💥 Accepted by ECCV 2024!
+
 - 2024.6.19 - 💥 Integrated into [OpenBayes](https://openbayes.com/), see the [demo](https://openbayes.com/console/public/tutorials/SaPYcYCaWSA). Thank OpenBayes team!
 
 - 2024.6.16 - 💥 Support PyTorch 2.X.
