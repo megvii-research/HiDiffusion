@@ -52,6 +52,8 @@
 <br>
 
 ## 🔥 Update
+- 2024.8.15 - 💥 [Diffusers](https://github.com/huggingface/diffusers) documentation has added HiDiffusion, see [here](https://huggingface.co/docs/diffusers/community_projects). Thank Diffusers team!
+  
 - 2024.7.3 - 💥 Accepted by ECCV 2024!
 
 - 2024.6.19 - 💥 Integrated into [OpenBayes](https://openbayes.com/), see the [demo](https://openbayes.com/console/public/tutorials/SaPYcYCaWSA). Thank OpenBayes team!
