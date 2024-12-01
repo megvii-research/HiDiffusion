@@ -482,10 +482,12 @@ This codebase is based on [tomesd](https://github.com/dbolya/tomesd) and [diffus
 ## 🎓 Citation
 
 ```
-@article{zhang2023hidiffusion,
+@inproceedings{zhang2025hidiffusion,
   title={HiDiffusion: Unlocking Higher-Resolution Creativity and Efficiency in Pretrained Diffusion Models},
   author={Zhang, Shen and Chen, Zhaowei and Zhao, Zhenyu and Chen, Yuhao and Tang, Yao and Liang, Jiajun},
-  journal={arXiv preprint arXiv:2311.17528},
-  year={2023}
+  booktitle={European Conference on Computer Vision},
+  pages={145--161},
+  year={2025},
+  organization={Springer}
 }
 ```
