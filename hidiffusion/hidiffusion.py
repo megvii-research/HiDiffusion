@@ -2058,7 +2058,7 @@ def remove_hidiffusion(model: torch.nn.Module):
     model = model.unet if hasattr(model, "unet") else model
 
     for _, module in model.named_modules():
-        if hasattr(module, "info"):
+        if hasattr(module, "info") and module.info:
             for hook in module.info["hooks"]:
                 hook.remove()
             module.info["hooks"].clear()
