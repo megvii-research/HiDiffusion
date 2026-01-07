@@ -6,7 +6,7 @@
 
 ### <div align="center">💡 HiDiffusion: Unlocking Higher-Resolution Creativity and Efficiency in Pretrained Diffusion Models</div> 
 
-<div align="center">Shen Zhang, Zhaowei Chen, Zhenyu Zhao, Yuhao Chen, Yao Tang, Jiajun Liang</div> 
+<div align="center">[Shen Zhang](https://scholar.google.com/citations?hl=zh-CN&user=QFowS4cAAAAJ), Zhaowei Chen, Zhenyu Zhao, Yuhao Chen, Yao Tang, [Jiajun Liang](https://jiajunvision.github.io/)</div> 
 
 <br>
 
