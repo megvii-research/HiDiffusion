@@ -4,15 +4,17 @@ import os
 from typing import Type, Dict, Any, Tuple, Callable, Optional, Union, List
 import torch.nn.functional as F
 from .utils import isinstance_str
-from dataclasses import dataclass
 import diffusers
-from diffusers.utils import USE_PEFT_BACKEND, replace_example_docstring, scale_lora_layers, unscale_lora_layers
+from diffusers.utils import USE_PEFT_BACKEND, scale_lora_layers, unscale_lora_layers, deprecate
 from diffusers.pipelines.stable_diffusion_xl.pipeline_output import StableDiffusionXLPipelineOutput
-from diffusers.image_processor import PipelineImageInput, VaeImageProcessor
-from diffusers.utils.torch_utils import is_compiled_module, is_torch_version, randn_tensor, apply_freeu
+from diffusers.image_processor import PipelineImageInput
+from diffusers.utils.torch_utils import is_compiled_module, is_torch_version, apply_freeu
+from diffusers.pipelines import auto_pipeline
 from diffusers.pipelines.controlnet.multicontrolnet import MultiControlNetModel
 from diffusers.models import ControlNetModel
+from diffusers.models.attention import _chunked_feed_forward
 import warnings
+
 diffusers_version = diffusers.__version__
 if diffusers_version < "0.27.0":
     from diffusers.models.unet_2d_condition import UNet2DConditionOutput
@@ -111,7 +113,7 @@ with open(os.path.join(module_key_path, 'sdxl_module_key.txt'), 'r') as f:
 def make_diffusers_sdxl_contrtolnet_ppl(block_class):
 
     
-    class sdxl_contrtolnet_ppl(block_class):
+    class sdxl_controlnet_ppl(block_class):
         # Save for unpatching later
         _parent = block_class
         
@@ -856,7 +858,7 @@ def make_diffusers_sdxl_contrtolnet_ppl(block_class):
                 return (image,)
 
             return StableDiffusionXLPipelineOutput(images=image)
-    return sdxl_contrtolnet_ppl
+    return sdxl_controlnet_ppl
 
 
 def make_diffusers_unet_2d_condition(block_class):
@@ -1290,7 +1292,7 @@ def make_diffusers_transformer_block(block_class: Type[torch.nn.Module]) -> Type
                         f"HiDiffusion Warning: The feature size is {(H,W)} and cannot be directly partitioned into windows. We interpolate the size to {(window_size[0]*2, window_size[1]*2)} to enable the window partition. Even though the generation is OK, the image quality would be largely decreased. We sugget removing window attention by setting apply_hidiffusion(pipe, apply_window_attn=False) for better image quality."
                     )
                     x = F.interpolate(x.permute(0,3,1,2).contiguous(), size=(window_size[0]*2, window_size[1]*2), mode='bicubic').permute(0,2,3,1).contiguous()
-                if type(shift_size) == list or type(shift_size) == tuple:
+                if type(shift_size) is list or type(shift_size) is tuple:
                     if shift_size[0] > 0:
                         x = torch.roll(x, shifts=(-shift_size[0], -shift_size[1]), dims=(1, 2))
                 else:
@@ -1318,7 +1320,7 @@ def make_diffusers_transformer_block(block_class: Type[torch.nn.Module]) -> Type
                 B = int(windows.shape[0] / 4) # 2x2
                 x = windows.view(B, 2, 2, window_size[0], window_size[1], -1)
                 x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, window_size[0]*2, window_size[1]*2, -1)
-                if type(shift_size) == list or type(shift_size) == tuple:
+                if type(shift_size) is list or type(shift_size) is tuple:
                     if shift_size[0] > 0:
                         x = torch.roll(x, shifts=(shift_size[0], shift_size[1]), dims=(1, 2))
                 else:
@@ -1477,6 +1479,8 @@ def make_diffusers_cross_attn_down_block(block_class: Type[torch.nn.Module]) -> 
         aggressive_raunet = False
         T1 = 0 # to avoid confict with sdxl-turbo
         max_timestep = 50
+        info: dict = None
+        model: str = None
         
         def forward(
             self,
@@ -1515,7 +1519,7 @@ def make_diffusers_cross_attn_down_block(block_class: Type[torch.nn.Module]) -> 
             elif self.model == 'sdxl_turbo':
                 self.T1_ratio = switching_threshold_ratio_dict['sdxl_turbo_1024'][self.switching_threshold_ratio]
             else:
-                raise Exception(f'Error model. HiDiffusion now only supports sd15, sd21, sdxl, sdxl-turbo.') 
+                raise Exception("Error model. HiDiffusion now only supports sd15, sd21, sdxl, sdxl-turbo.") 
             
             if self.aggressive_raunet:
                 # self.T1_start = min(int(self.max_timestep * self.T1_ratio * 0.4), int(8/50 * self.max_timestep))
@@ -1649,7 +1653,7 @@ def make_diffusers_cross_attn_up_block(block_class: Type[torch.nn.Module]) -> Ty
             elif self.model == 'sdxl_turbo':
                 self.T1_ratio = switching_threshold_ratio_dict['sdxl_turbo_1024'][self.switching_threshold_ratio]
             else:
-                raise Exception(f'Error model. HiDiffusion now only supports sd15, sd21, sdxl, sdxl-turbo.') 
+                raise Exception("Error model. HiDiffusion now only supports sd15, sd21, sdxl, sdxl-turbo.")
             
             if self.aggressive_raunet:
                 # self.T1_start = min(int(self.max_timestep * self.T1_ratio * 0.4), int(8/50 * self.max_timestep))
@@ -1781,7 +1785,7 @@ def make_diffusers_downsampler_block(block_class: Type[torch.nn.Module]) -> Type
             elif self.model == 'sdxl_turbo':
                 self.T1_ratio = switching_threshold_ratio_dict['sdxl_turbo_1024'][self.switching_threshold_ratio]
             else:
-                raise Exception(f'Error model. HiDiffusion now only supports sd15, sd21, sdxl, sdxl-turbo.') 
+                raise Exception("Error model. HiDiffusion now only supports sd15, sd21, sdxl, sdxl-turbo.") 
 
             if self.aggressive_raunet:
                 # self.T1 = min(int(self.max_timestep * self.T1_ratio), int(8/50 * self.max_timestep))
@@ -1842,6 +1846,7 @@ def make_diffusers_upsampler_block(block_class: Type[torch.nn.Module]) -> Type[t
         timestep = 0
         aggressive_raunet = False
         max_timestep = 50
+        info: dict = None
         
         def forward(self, hidden_states: torch.Tensor, scale = 1.0) -> torch.Tensor:
             self.max_timestep = self.info['pipeline']._num_timesteps
@@ -1870,7 +1875,7 @@ def make_diffusers_upsampler_block(block_class: Type[torch.nn.Module]) -> Type[t
             elif self.model == 'sdxl_turbo':
                 self.T1_ratio = switching_threshold_ratio_dict['sdxl_turbo_1024'][self.switching_threshold_ratio]
             else:
-                raise Exception(f'Error model. HiDiffusion now only supports sd15, sd21, sdxl, sdxl-turbo.') 
+                raise Exception("Error model. HiDiffusion now only supports sd15, sd21, sdxl, sdxl-turbo.")
 
             
             if self.aggressive_raunet:
@@ -1915,7 +1920,8 @@ def hook_diffusion_model(model: torch.nn.Module):
 def apply_hidiffusion(
         model: torch.nn.Module,
         apply_raunet: bool = True,
-        apply_window_attn: bool = True):
+        apply_window_attn: bool = True,
+        is_playground = False):
     """
     model: diffusers model. We support SD 1.5, 2.1, XL, XL Turbo.
     
@@ -1958,9 +1964,10 @@ def apply_hidiffusion(
         'upsample_size': None,
         'hooks': [], 
         'text_to_img_controlnet': hasattr(model, 'controlnet'),
-        'is_inpainting_task': 'inpainting' in model.name_or_path, 
-        'is_playground': 'playground' in model.name_or_path,
-        'pipeline': model}
+        'is_inpainting_task': model.__class__ in auto_pipeline.AUTO_INPAINT_PIPELINES_MAPPING.values(), 
+        'is_playground': is_playground,
+        'pipeline': model
+    }
     model.info = diffusion_model.info
     hook_diffusion_model(diffusion_model)
     
@@ -2051,7 +2058,7 @@ def remove_hidiffusion(model: torch.nn.Module):
     model = model.unet if hasattr(model, "unet") else model
 
     for _, module in model.named_modules():
-        if hasattr(module, "info"):
+        if hasattr(module, "info") and module.info:
             for hook in module.info["hooks"]:
                 hook.remove()
             module.info["hooks"].clear()
